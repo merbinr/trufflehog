@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"io"
 	"math"
 	"net/http"
 	"net/http/httptest"
@@ -15,6 +16,31 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestUserAgent(t *testing.T) {
+	assert.Equal(t, "python-requests/2.34.2", UserAgent())
+}
+
+func TestCustomTransportSetsUserAgent(t *testing.T) {
+	transport := NewCustomTransport(FakeTransport{
+		CreateResponse: func(req *http.Request) (*http.Response, error) {
+			assert.Equal(t, UserAgent(), req.Header.Get("User-Agent"))
+			assert.Len(t, req.Header.Values("User-Agent"), 1)
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader("")),
+			}, nil
+		},
+	})
+
+	req, err := http.NewRequest(http.MethodGet, "https://example.com", nil)
+	require.NoError(t, err)
+	req.Header.Add("User-Agent", "existing-agent")
+
+	resp, err := transport.RoundTrip(req)
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
+}
 
 func TestRetryableHTTPClientCheckRetry(t *testing.T) {
 	testCases := []struct {

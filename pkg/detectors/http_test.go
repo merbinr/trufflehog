@@ -12,9 +12,31 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
+	"github.com/trufflesecurity/trufflehog/v3/pkg/common"
 	"github.com/trufflesecurity/trufflehog/v3/pkg/pb/detector_typepb"
 )
+
+func TestDetectorTransportSetsUserAgent(t *testing.T) {
+	var userAgents []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		userAgents = req.Header.Values("User-Agent")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client := &http.Client{Transport: NewDetectorTransport(server.Client().Transport)}
+	req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, server.URL, nil)
+	require.NoError(t, err)
+	req.Header.Add("User-Agent", "existing-agent")
+
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	defer func() { _ = resp.Body.Close() }()
+
+	assert.Equal(t, []string{common.UserAgent()}, userAgents)
+}
 
 func TestWithNoLocalIP(t *testing.T) {
 	t.Run("Prevents dialing local IP", func(t *testing.T) {

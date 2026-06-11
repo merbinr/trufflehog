@@ -51,7 +51,7 @@ func (s Scanner) FromData(ctx context.Context, verify bool, data []byte) (result
 				continue
 			}
 			req.Header.Add("Authorization", fmt.Sprintf("token %s", resMatch))
-			req.Header.Add("User-Agent", "API Explorer")
+			req.Header.Set("User-Agent", common.UserAgent())
 			req.Header.Add("Travis-API-Version", "3")
 			res, err := client.Do(req)
 			if err == nil {

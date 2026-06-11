@@ -21,7 +21,7 @@ const (
 	WORKSPACE_URL                 = "https://api.getpostman.com/workspaces/%s"
 	ENVIRONMENTS_URL              = "https://api.getpostman.com/environments/%s"
 	COLLECTIONS_URL               = "https://api.getpostman.com/collections/%s"
-	userAgent                     = "PostmanRuntime/7.26.8"
+	userAgent                     = common.DefaultUserAgent
 	defaultContentType            = "*"
 	abortScanAPIReqLimitThreshold = 0.8 // Abort scan if 80% of monthly api request limit is reached
 )

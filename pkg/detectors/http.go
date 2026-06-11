@@ -15,7 +15,6 @@ import (
 	"golang.org/x/sync/singleflight"
 
 	"github.com/trufflesecurity/trufflehog/v3/pkg/common"
-	"github.com/trufflesecurity/trufflehog/v3/pkg/feature"
 )
 
 var DetectorHttpClientWithNoLocalAddresses *http.Client
@@ -23,13 +22,6 @@ var DetectorHttpClientWithLocalAddresses *http.Client
 
 // DefaultResponseTimeout is the default timeout for HTTP requests.
 const DefaultResponseTimeout = 10 * time.Second
-
-func userAgent() string {
-	if len(feature.UserAgentSuffix.Load()) > 0 {
-		return "TruffleHog " + feature.UserAgentSuffix.Load()
-	}
-	return "TruffleHog"
-}
 
 func init() {
 	DetectorHttpClientWithLocalAddresses = NewDetectorHttpClient(
@@ -74,7 +66,7 @@ type detectorTransport struct {
 }
 
 func (t *detectorTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Add("User-Agent", userAgent())
+	req.Header.Set("User-Agent", common.UserAgent())
 	return t.T.RoundTrip(req)
 }
 
